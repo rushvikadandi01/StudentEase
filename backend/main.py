@@ -58,17 +58,20 @@ bearer_scheme = HTTPBearer(auto_error=False)
 # --------------------------------------------------
 # FASTAPI APP
 # --------------------------------------------------
+load_dotenv()
 
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "").rstrip("/")
 app = FastAPI(title="StudentEase API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-    ],
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    *([frontend_origin] if frontend_origin else []),
+],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
