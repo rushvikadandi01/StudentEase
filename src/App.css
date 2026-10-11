@@ -1,0 +1,378 @@
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  min-height: 100vh;
+  background: #f7f8fc;
+  color: #151827;
+}
+
+/* Navbar */
+
+.navbar {
+  min-height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8%;
+  background: white;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.logo {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.logo span {
+  color: #635bff;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #555b70;
+  font-size: 15px;
+}
+
+.nav-links a:hover {
+  color: #635bff;
+}
+
+.login-btn {
+  border: none;
+  background: #151827;
+  color: white !important;
+  padding: 12px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Hero */
+
+.hero {
+  min-height: 600px;
+  padding: 90px 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 70px;
+}
+
+.hero-content {
+  max-width: 600px;
+}
+
+.tagline {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #635bff;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: 72px;
+  line-height: 1.08;
+  letter-spacing: -3px;
+  margin-bottom: 25px;
+}
+
+.hero h1 span {
+  color: #635bff;
+}
+
+.hero-text {
+  color: #62697c;
+  font-size: 19px;
+  line-height: 1.8;
+  max-width: 520px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 35px;
+}
+
+.primary-btn {
+  display: inline-block;
+  text-decoration: none;
+  background: #635bff;
+  color: white;
+  border: none;
+  padding: 16px 25px;
+  border-radius: 9px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #5149e8;
+}
+
+/* AI Card */
+
+.ai-card {
+  width: 400px;
+  flex-shrink: 0;
+  background: white;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(30, 30, 60, 0.12);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.small-text {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: #635bff;
+  font-weight: bold;
+}
+
+.card-header h3 {
+  margin-top: 5px;
+  font-size: 20px;
+}
+
+.ai-icon {
+  width: 40px;
+  height: 40px;
+  background: #eeecff;
+  color: #635bff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.complaint-box {
+  background: #f6f7fb;
+  padding: 18px;
+  border-radius: 10px;
+  margin: 25px 0;
+  color: #555b70;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.analysis {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #eeeeee;
+  padding-top: 20px;
+}
+
+.analysis div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.analysis span {
+  font-size: 12px;
+  color: #8a8fa1;
+}
+
+.analysis strong {
+  font-size: 14px;
+}
+
+.high {
+  color: #ef4444;
+}
+
+/* How It Works */
+
+.how-section {
+  background: white;
+  padding: 90px 8%;
+  text-align: center;
+}
+
+.section-label {
+  color: #635bff;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.how-section h2 {
+  font-size: 44px;
+  margin: 15px 0 55px;
+}
+
+.how-section h2 span {
+  color: #635bff;
+}
+
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: 80px;
+}
+
+.step {
+  max-width: 260px;
+}
+
+.step-number {
+  color: #635bff;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.step h3 {
+  font-size: 21px;
+  margin-bottom: 10px;
+}
+
+.step p {
+  color: #73798b;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .hero {
+    gap: 35px;
+    padding-left: 6%;
+    padding-right: 6%;
+  }
+
+  .hero h1 {
+    font-size: 60px;
+  }
+
+  .ai-card {
+    width: 360px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding-top: 65px;
+    padding-bottom: 65px;
+  }
+
+  .hero h1 {
+    font-size: clamp(42px, 8vw, 60px);
+    letter-spacing: -2px;
+  }
+
+  .hero-text {
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 17px;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .ai-card {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .steps {
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .navbar {
+    padding: 15px 5%;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .nav-links {
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 500px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    width: 100%;
+    gap: 16px;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+  }
+
+  .login-btn {
+    padding: 9px 12px;
+  }
+
+  .hero h1 {
+    font-size: 43px;
+  }
+
+  .hero-buttons {
+    justify-content: flex-start;
+  }
+
+  .primary-btn {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+
+  .ai-card {
+    padding: 20px;
+  }
+
+  .how-section {
+    padding: 65px 6%;
+  }
+
+  .how-section h2 {
+    font-size: 32px;
+  }
+
+  .analysis {
+    gap: 8px;
+  }
+
+  .analysis span {
+    font-size: 10px;
+  }
+
+  .analysis strong {
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,353 @@
+.analysis-page {
+  min-height: 100vh;
+  background: #f7f8fc;
+  color: #151827;
+}
+
+/* Header */
+
+.analysis-header {
+  height: 75px;
+  background: white;
+  border-bottom: 1px solid #eeeeee;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 8%;
+}
+
+.analysis-logo {
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.analysis-logo span {
+  color: #635bff;
+}
+
+/* Main */
+
+.analysis-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 65px 20px;
+}
+
+/* Intro */
+
+.analysis-intro {
+  text-align: center;
+}
+
+.success-icon {
+  width: 48px;
+  height: 48px;
+
+  margin: 0 auto 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e9f9ef;
+  color: #16a34a;
+
+  border-radius: 50%;
+
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.page-label {
+  color: #635bff;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.analysis-intro h1 {
+  font-size: 42px;
+  letter-spacing: -1.5px;
+  margin: 12px 0;
+}
+
+.analysis-intro h1 span {
+  color: #635bff;
+}
+
+.analysis-intro > p:last-child {
+  color: #73798b;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: auto;
+}
+
+/* Complaint ID */
+
+.complaint-id {
+  text-align: center;
+  margin: 25px 0;
+
+  color: #8b90a0;
+  font-size: 13px;
+}
+
+.complaint-id strong {
+  color: #151827;
+}
+
+/* Complaint Card */
+
+.result-card {
+  background: white;
+
+  padding: 30px;
+
+  border-radius: 16px;
+
+  box-shadow: 0 10px 35px rgba(30, 30, 60, 0.06);
+
+  margin-bottom: 20px;
+}
+
+.result-title {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #635bff;
+  font-weight: bold;
+
+  margin-bottom: 12px;
+}
+
+.result-card h2 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.original-text {
+  color: #656b7c;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* Result Grid */
+
+.result-grid {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+}
+
+.result-box {
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 15px;
+
+  border: 1px solid #eeeeee;
+}
+
+.result-box p {
+  font-size: 10px;
+  letter-spacing: 1.3px;
+
+  color: #8b90a0;
+
+  font-weight: bold;
+
+  margin-bottom: 10px;
+}
+
+.result-box h3 {
+  font-size: 19px;
+  margin-bottom: 7px;
+}
+
+.result-description {
+  font-size: 12px;
+  color: #969aaa;
+}
+
+.high-priority {
+  color: #ef4444;
+}
+
+/* Confidence */
+
+.confidence-card {
+  background: white;
+
+  padding: 25px 30px;
+
+  border-radius: 15px;
+
+  margin-bottom: 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 30px;
+}
+
+.confidence-card p {
+  color: #8b90a0;
+
+  font-size: 10px;
+
+  letter-spacing: 1.3px;
+
+  font-weight: bold;
+
+  margin-bottom: 5px;
+}
+
+.confidence-card h2 {
+  font-size: 28px;
+}
+
+.confidence-bar {
+  flex: 1;
+
+  height: 8px;
+
+  background: #eeeeee;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+.confidence-fill {
+  width: 94%;
+
+  height: 100%;
+
+  background: #635bff;
+
+  border-radius: 10px;
+}
+
+/* Status */
+
+.status-card {
+  background: #f0fdf4;
+
+  border: 1px solid #dcfce7;
+
+  padding: 20px 25px;
+
+  border-radius: 14px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-bottom: 25px;
+}
+
+.status-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #dcfce7;
+
+  color: #16a34a;
+
+  font-weight: bold;
+}
+
+.status-card h3 {
+  font-size: 15px;
+
+  margin-bottom: 5px;
+}
+
+.status-card p {
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+/* Dashboard Button */
+
+.dashboard-btn {
+  display: block;
+
+  margin: auto;
+
+  background: #635bff;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 9px;
+
+  padding: 14px 25px;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.dashboard-btn:hover {
+  background: #5149e8;
+}
+
+/* Responsive */
+
+@media (max-width: 650px) {
+
+  .analysis-container {
+    padding: 45px 15px;
+  }
+
+  .analysis-intro h1 {
+    font-size: 32px;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .confidence-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .confidence-bar {
+    width: 100%;
+  }
+}
+
+.complaint-meta {
+  display: flex;
+  gap: 25px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eeeeee;
+  color: #73798b;
+  font-size: 12px;
+}
+
+.complaint-meta strong {
+  color: #151827;
+}

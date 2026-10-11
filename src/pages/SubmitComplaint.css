@@ -1,0 +1,207 @@
+.complaint-page {
+  min-height: 100vh;
+  background: #f7f8fc;
+  color: #151827;
+}
+
+/* Header */
+
+.complaint-header {
+  height: 75px;
+  background: white;
+  border-bottom: 1px solid #eeeeee;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 8%;
+}
+
+.complaint-logo {
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.complaint-logo span {
+  color: #635bff;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #555b70;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Container */
+
+.complaint-container {
+  max-width: 850px;
+  margin: auto;
+  padding: 70px 20px;
+}
+
+.complaint-intro {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-label {
+  color: #635bff;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+}
+
+.complaint-intro h1 {
+  font-size: 45px;
+  letter-spacing: -1.5px;
+  margin-bottom: 15px;
+}
+
+.complaint-intro h1 span {
+  color: #635bff;
+}
+
+.complaint-intro p:last-child {
+  color: #73798b;
+  max-width: 600px;
+  margin: auto;
+  line-height: 1.6;
+}
+
+/* Form Card */
+
+.complaint-card {
+  background: white;
+  padding: 40px;
+  border-radius: 18px;
+
+  box-shadow: 0 15px 45px rgba(30, 30, 60, 0.08);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 14px 15px;
+
+  border: 1px solid #e1e3ea;
+  border-radius: 9px;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+  background: white;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #635bff;
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.08);
+}
+
+/* Two columns */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Anonymous */
+
+.anonymous-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0 30px;
+}
+
+.anonymous-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: #635bff;
+}
+
+.anonymous-option label {
+  font-size: 13px;
+  color: #555b70;
+}
+
+/* Button */
+
+.analyze-btn {
+  width: 100%;
+
+  padding: 15px;
+
+  background: #635bff;
+  color: white;
+
+  border: none;
+  border-radius: 9px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.analyze-btn:hover {
+  background: #5149e8;
+}
+
+.form-note {
+  text-align: center;
+  color: #969aaa;
+  font-size: 11px;
+  margin-top: 15px;
+}
+
+/* Responsive */
+
+@media (max-width: 650px) {
+
+  .complaint-header {
+    padding: 0 20px;
+  }
+
+  .complaint-container {
+    padding: 45px 15px;
+  }
+
+  .complaint-intro h1 {
+    font-size: 36px;
+  }
+
+  .complaint-card {
+    padding: 25px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

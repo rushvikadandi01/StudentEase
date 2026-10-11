@@ -1,0 +1,137 @@
+text,category
+"The Wi-Fi is not working in the classroom",IT / Internet
+"The campus internet connection is very slow",IT / Internet
+"My computer lab software is not opening",IT / Internet
+"The college network keeps disconnecting",IT / Internet
+"The online portal is not loading",IT / Internet
+"I cannot connect to the college Wi-Fi",IT / Internet
+"The computer lab computers cannot access the internet",IT / Internet
+"The college website is showing a connection error",IT / Internet
+"The campus Wi-Fi signal is weak in the library",IT / Internet
+"My college email account is not working",IT / Internet
+"The online attendance portal is unavailable",IT / Internet
+"The laboratory computer keeps crashing",IT / Internet
+"The internet speed is too slow for online classes",IT / Internet
+"The printer in the computer lab is not responding",IT / Internet
+"I cannot log in to the student portal",IT / Internet
+"The college network is down today",IT / Internet
+"The software installation in the lab has failed",IT / Internet
+"The projector computer cannot connect to the network",IT / Internet
+"The teacher has not completed the syllabus",Academics
+"My exam timetable has not been announced",Academics
+"I have an issue with my attendance record",Academics
+"The assignment submission deadline is unclear",Academics
+"The lecture schedule keeps changing",Academics
+"The examination results contain an error",Academics
+"The professor cancelled the lecture without notice",Academics
+"I cannot access the study materials",Academics
+"The internal marks are missing from my record",Academics
+"The practical examination date has changed",Academics
+"I need clarification about the assignment questions",Academics
+"The class timetable has overlapping lectures",Academics
+"The lecturer has not uploaded the notes",Academics
+"My exam registration is not confirmed",Academics
+"The course syllabus is not available",Academics
+"The laboratory practical session was cancelled",Academics
+"The hostel room has a broken fan",Hostel
+"The hostel warden is not responding to complaints",Hostel
+"There is no hot water in the hostel bathroom",Hostel
+"The hostel room is overcrowded",Hostel
+"The hostel mess closes too early",Hostel
+"The dormitory lights are not working",Hostel
+"The hostel drinking water is unavailable",Hostel
+"The hostel mattress is damaged",Hostel
+"My hostel room door lock is broken",Hostel
+"The hostel washing machines are not working",Hostel
+"The hostel food is served cold",Hostel
+"The hostel bathroom taps are leaking",Hostel
+"The hostel curfew notice is unclear",Hostel
+"There are mosquitoes in the hostel rooms",Hostel
+"The hostel common room television is broken",Hostel
+"The hostel water supply stops every evening",Hostel
+"The hostel room has no working ceiling light",Hostel
+"The classroom projector is broken",Infrastructure
+"There are broken desks in the classroom",Infrastructure
+"There is no drinking water in the academic block",Infrastructure
+"The college building lift is not working",Infrastructure
+"The classroom lights are not working",Infrastructure
+"There is a power supply problem in the laboratory",Infrastructure
+"The college staircase handrail is damaged",Infrastructure
+"The classroom ceiling is leaking during rain",Infrastructure
+"The library chairs are broken",Infrastructure
+"The college auditorium sound system is faulty",Infrastructure
+"The laboratory electrical sockets are damaged",Infrastructure
+"The college building has a cracked window",Infrastructure
+"The classroom whiteboard is damaged",Infrastructure
+"The campus walkway has uneven flooring",Infrastructure
+"The college canteen tables are broken",Infrastructure
+"The classroom air conditioner is not working",Infrastructure
+"The college bus is arriving late every day",Transport
+"The bus driver is not following the scheduled route",Transport
+"There are not enough college buses",Transport
+"The college bus stop has changed without notice",Transport
+"The bus is overcrowded during the morning trip",Transport
+"The transport service did not arrive today",Transport
+"The college bus has a damaged seat",Transport
+"The bus route does not cover my area",Transport
+"The college bus pass has not been issued",Transport
+"The bus conductor was rude to students",Transport
+"The college bus timetable is not displayed",Transport
+"The bus broke down on the way to college",Transport
+"The college shuttle service is frequently delayed",Transport
+"The bus stop has no shelter from rain",Transport
+"The college bus is skipping its usual stop",Transport
+"The transport office has not answered my query",Transport
+"There is garbage near the college entrance",Cleanliness
+"The washrooms are dirty and need cleaning",Cleanliness
+"The dustbins are overflowing in the corridor",Cleanliness
+"The classroom floor is not clean",Cleanliness
+"There is a bad smell near the cafeteria bins",Cleanliness
+"The campus sanitation needs improvement",Cleanliness
+"The library tables are covered in dust",Cleanliness
+"The college garden has litter everywhere",Cleanliness
+"The canteen floor is sticky and dirty",Cleanliness
+"The washroom soap dispensers are empty",Cleanliness
+"The corridor has not been swept today",Cleanliness
+"Plastic waste is scattered around the playground",Cleanliness
+"The drinking water area is unhygienic",Cleanliness
+"The garbage collection has been missed",Cleanliness
+"The campus drainage area is dirty",Cleanliness
+"The cafeteria bins have not been emptied",Cleanliness
+"Someone stole my bag from the library",Security
+"I received threatening messages from another student",Security
+"The campus entrance is unsafe at night",Security
+"An unknown person entered the college building",Security
+"I want to report harassment on campus",Security
+"There is no security guard near the parking area",Security
+"My bicycle was stolen from the campus parking lot",Security
+"The library security gate is not working",Security
+"Someone damaged my parked motorcycle",Security
+"A stranger is following students near the campus gate",Security
+"My belongings went missing from the classroom",Security
+"The campus CCTV camera appears to be broken",Security
+"An unauthorized person entered the hostel",Security
+"Someone is threatening students in the corridor",Security
+"The college parking area is not monitored",Security
+"The emergency exit is blocked by stored items",Security
+"The classroom projector is not working",Infrastructure
+"The college Wi-Fi is unavailable in the hostel",IT / Internet
+"The hostel warden has not addressed a maintenance request",Hostel
+"The classroom has no electricity",Infrastructure
+"The college bus is not following its published schedule",Transport
+"The washroom needs urgent cleaning",Cleanliness
+"The teacher has not shared the exam results",Academics
+"The campus security guard is absent from the gate",Security
+"The student portal fails whenever I try to log in",IT / Internet
+"The hostel shower is broken",Hostel
+"The college road has a damaged streetlight",Infrastructure
+"The bus service is overcrowded after evening classes",Transport
+"The cafeteria waste bins are full",Cleanliness
+"My assignment marks have been recorded incorrectly",Academics
+"My laptop cannot connect to the campus network",IT / Internet
+"The hostel common bathroom is unhygienic",Cleanliness
+"The library entrance door lock is broken",Infrastructure
+"The college bus pass application is not processed",Transport
+"I am reporting an unsafe incident near the library",Security
+"The hostel room ceiling fan makes a loud noise",Hostel
+"The classroom projector screen is torn",Infrastructure
