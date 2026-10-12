@@ -18,11 +18,22 @@ const analyzeComplaint = async () => {
   }
 
   try {
-    const response = await fetch(`${API_URL}/complaints`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    
+const token = sessionStorage.getItem("studentease.studentToken");
+
+if (!token) {
+  alert("Please log in as a student before submitting a complaint.");
+  navigate("/student-login");
+  return;
+}
+
+const response = await fetch(`${API_URL}/complaints`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+
       body: JSON.stringify({
         title: title.trim(),
         description: description.trim(),
