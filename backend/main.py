@@ -1,9 +1,10 @@
-
 import os
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from typing import Any
+from pathlib import Path
 
+import joblib
 import jwt
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends
@@ -12,15 +13,31 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from pwdlib import PasswordHash
 
-
 from backend.database import (
     create_table,
     save_complaint,
     get_all_complaints,
     get_connection,
 )
-from pathlib import Path
-import joblib
+
+
+# --------------------------------------------------
+# CONFIGURATION
+# --------------------------------------------------
+
+load_dotenv()
+
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "30"))
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "").rstrip("/")
+
+password_hash = PasswordHash.recommended()
+bearer_scheme = HTTPBearer(auto_error=False)
+
 
 # --------------------------------------------------
 # MACHINE LEARNING MODEL
@@ -41,37 +58,20 @@ except Exception as error:
 
 
 # --------------------------------------------------
-# AUTHENTICATION CONFIGURATION
-# --------------------------------------------------
-
-load_dotenv()
-
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
-ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "30"))
-
-password_hash = PasswordHash.recommended()
-bearer_scheme = HTTPBearer(auto_error=False)
-
-
-# --------------------------------------------------
 # FASTAPI APP
 # --------------------------------------------------
-load_dotenv()
 
-frontend_origin = os.getenv("FRONTEND_ORIGIN", "").rstrip("/")
 app = FastAPI(title="StudentEase API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    *([frontend_origin] if frontend_origin else []),
-],
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        *([frontend_origin] if frontend_origin else []),
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,8 +99,19 @@ class AdminLogin(BaseModel):
     password: str
 
 
+class StudentRegister(BaseModel):
+    full_name: str
+    email: str
+    password: str
+
+
+class StudentLogin(BaseModel):
+    email: str
+    password: str
+
+
 # --------------------------------------------------
-# AUTHENTICATION
+# ADMIN AUTHENTICATION
 # --------------------------------------------------
 
 def require_admin(
@@ -157,7 +168,7 @@ def admin_login(login: AdminLogin):
     ):
         raise HTTPException(
             status_code=500,
-            detail="Admin authentication is not configured. Check the .env file.",
+            detail="Admin authentication is not configured. Check the environment variables.",
         )
 
     try:
@@ -199,6 +210,181 @@ def admin_login(login: AdminLogin):
 
 
 # --------------------------------------------------
+# STUDENT REGISTRATION
+# --------------------------------------------------
+
+@app.post("/students/register", status_code=201)
+def register_student(student: StudentRegister):
+    full_name = student.full_name.strip()
+    email = student.email.strip().lower()
+    password = student.password
+
+    # Validate required fields
+    if not full_name:
+        raise HTTPException(
+            status_code=400,
+            detail="Full name is required.",
+        )
+
+    # Validate college email domain
+    if not email.endswith("@student.gitam.edu"):
+        raise HTTPException(
+            status_code=400,
+            detail="Please use your @student.gitam.edu email address.",
+        )
+
+    # Validate password length
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must contain at least 8 characters.",
+        )
+
+    # Hash password before storing it
+    hashed_password = password_hash.hash(password)
+
+    student_id = str(uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    try:
+        with get_connection() as connection:
+            if DATABASE_URL:
+                connection.execute(
+                    """
+                    INSERT INTO students
+                    (id, full_name, email, password_hash, created_at)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        student_id,
+                        full_name,
+                        email,
+                        hashed_password,
+                        created_at,
+                    ),
+                )
+            else:
+                connection.execute(
+                    """
+                    INSERT INTO students
+                    (id, full_name, email, password_hash, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        student_id,
+                        full_name,
+                        email,
+                        hashed_password,
+                        created_at,
+                    ),
+                )
+
+    except Exception as error:
+        # Handle duplicate email without exposing database details
+        error_code = getattr(error, "sqlstate", None)
+        sqlite_code = getattr(error, "sqlite_errorcode", None)
+
+        if error_code == "23505" or sqlite_code == 2067:
+            raise HTTPException(
+                status_code=409,
+                detail="An account with this email already exists.",
+            ) from error
+
+        raise
+
+    return {
+        "message": "Student registered successfully.",
+        "student_id": student_id,
+        "full_name": full_name,
+        "email": email,
+    }
+
+
+# --------------------------------------------------
+# STUDENT LOGIN
+# --------------------------------------------------
+
+@app.post("/students/login")
+def student_login(student: StudentLogin):
+    email = student.email.strip().lower()
+
+    # Find the registered student
+    with get_connection() as connection:
+        if DATABASE_URL:
+            cursor = connection.execute(
+                """
+                SELECT id, full_name, email, password_hash
+                FROM students
+                WHERE email = %s
+                """,
+                (email,),
+            )
+        else:
+            cursor = connection.execute(
+                """
+                SELECT id, full_name, email, password_hash
+                FROM students
+                WHERE email = ?
+                """,
+                (email,),
+            )
+
+        student_record = cursor.fetchone()
+
+    # Check email and password
+    if not student_record:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password.",
+        )
+
+    try:
+        password_is_valid = password_hash.verify(
+            student.password,
+            student_record["password_hash"],
+        )
+    except Exception:
+        password_is_valid = False
+
+    if not password_is_valid:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password.",
+        )
+
+    if not JWT_SECRET_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="Login authentication is not configured.",
+        )
+
+    # Create a short-lived student token
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+
+    token = jwt.encode(
+        {
+            "sub": student_record["id"],
+            "role": "student",
+            "exp": expires_at,
+        },
+        JWT_SECRET_KEY,
+        algorithm="HS256",
+    )
+
+    return {
+        "message": "Login successful.",
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": JWT_EXPIRE_MINUTES * 60,
+        "student": {
+            "id": student_record["id"],
+            "full_name": student_record["full_name"],
+            "email": student_record["email"],
+        },
+    }
+
+
+# --------------------------------------------------
 # DATABASE STARTUP
 # --------------------------------------------------
 
@@ -220,13 +406,12 @@ def home():
 # COMPLAINT ANALYSIS
 # --------------------------------------------------
 
-
 def analyze_details(complaint: Complaint):
     text = (
         complaint.title + " " + complaint.description
     ).lower()
 
-    # 1. Category: use ML when automatic detection is selected.
+    # Category detection
     if complaint.category != "Let AI detect":
         category = complaint.category
         method = "manual_selection"
@@ -245,7 +430,6 @@ def analyze_details(complaint: Complaint):
             method = "keyword_rules_fallback"
 
     else:
-        # Fallback if the model is unavailable.
         if any(
             word in text
             for word in ["wifi", "wi-fi", "internet", "network"]
@@ -305,7 +489,7 @@ def analyze_details(complaint: Complaint):
 
         method = "keyword_rules_fallback"
 
-    # 2. Priority: retain existing keyword-based rules.
+    # Priority detection
     high_words = [
         "urgent", "emergency", "danger",
         "fire", "accident", "security threat",
@@ -323,7 +507,7 @@ def analyze_details(complaint: Complaint):
     else:
         priority = "LOW"
 
-    # 3. Sentiment: retain existing keyword-based rules.
+    # Sentiment detection
     negative_words = [
         "bad", "terrible", "frustrated", "unable",
         "problem", "issue", "broken", "worst",
@@ -336,7 +520,7 @@ def analyze_details(complaint: Complaint):
         else "Neutral"
     )
 
-    # 4. Assign the responsible department.
+    # Department assignment
     departments = {
         "IT / Internet": "IT Support",
         "Infrastructure": "Maintenance",
@@ -361,127 +545,6 @@ def analyze_details(complaint: Complaint):
             category, "Student Affairs"
         ),
         "method": method,
-    }
-
-    text = (
-        complaint.title + " " + complaint.description
-    ).lower()
-
-    if any(
-        word in text
-        for word in ["wifi", "wi-fi", "internet", "network"]
-    ):
-        category = "IT / Internet"
-
-    elif any(
-        word in text
-        for word in [
-            "projector", "classroom", "building",
-            "fan", "electricity", "furniture",
-        ]
-    ):
-        category = "Infrastructure"
-
-    elif any(
-        word in text
-        for word in ["hostel", "warden", "dormitory"]
-    ):
-        category = "Hostel"
-
-    elif any(
-        word in text
-        for word in [
-            "teacher", "exam", "assignment",
-            "attendance", "syllabus", "lecture",
-        ]
-    ):
-        category = "Academics"
-
-    elif any(
-        word in text
-        for word in ["bus", "transport", "driver"]
-    ):
-        category = "Transport"
-
-    elif any(
-        word in text
-        for word in [
-            "garbage", "dustbin", "dirty",
-            "cleanliness", "sanitation",
-        ]
-    ):
-        category = "Cleanliness"
-
-    elif any(
-        word in text
-        for word in [
-            "security", "unsafe", "theft",
-            "harassment", "emergency",
-        ]
-    ):
-        category = "Security"
-
-    else:
-        category = "General Complaint"
-
-    if complaint.category != "Let AI detect":
-        category = complaint.category
-
-    high_words = [
-        "urgent", "emergency", "danger",
-        "fire", "accident", "security threat",
-    ]
-
-    medium_words = [
-        "not working", "unable", "broken",
-        "problem", "issue", "delay",
-    ]
-
-    if any(word in text for word in high_words):
-        priority = "HIGH"
-
-    elif any(word in text for word in medium_words):
-        priority = "MEDIUM"
-
-    else:
-        priority = "LOW"
-
-    negative_words = [
-        "bad", "terrible", "frustrated", "unable",
-        "problem", "issue", "broken", "worst",
-        "not working",
-    ]
-
-    sentiment = (
-        "Negative"
-        if any(word in text for word in negative_words)
-        else "Neutral"
-    )
-
-    departments = {
-        "IT / Internet": "IT Support",
-        "Infrastructure": "Maintenance",
-        "Hostel": "Hostel Administration",
-        "Academics": "Academic Administration",
-        "Transport": "Transport Department",
-        "Cleanliness": "Campus Maintenance",
-        "Security": "Campus Security",
-        "General Complaint": "Student Affairs",
-        "Other": "Student Affairs",
-    }
-
-    return {
-        "title": complaint.title,
-        "description": complaint.description,
-        "location": complaint.location,
-        "anonymous": complaint.anonymous,
-        "category": category,
-        "priority": priority,
-        "sentiment": sentiment,
-        "department": departments.get(
-            category, "Student Affairs"
-        ),
-        "method": "keyword_rules_demo",
     }
 
 
@@ -511,12 +574,17 @@ def create_complaint(complaint: Complaint):
 
 # --------------------------------------------------
 # LIST COMPLAINTS
-# Existing endpoint retained for the current frontend.
+# NOTE: This endpoint remains public for compatibility.
+# Restrict it before storing real student complaints.
 # --------------------------------------------------
 
+
 @app.get("/complaints")
-def list_complaints():
+def list_complaints(
+    admin: dict = Depends(require_admin),
+):
     return get_all_complaints()
+
 
 
 # --------------------------------------------------
@@ -532,7 +600,6 @@ def list_admin_complaints(
 
 # --------------------------------------------------
 # IMPORT COMPLAINTS
-# Protected because importing records modifies the database.
 # --------------------------------------------------
 
 @app.post("/complaints/import")
@@ -572,12 +639,8 @@ def import_complaints(
             "id": complaint_id,
             "title": item["title"],
             "description": item["description"],
-            "location": (
-                item.get("location") or "Not specified"
-            ),
-            "anonymous": bool(
-                item.get("anonymous", False)
-            ),
+            "location": item.get("location") or "Not specified",
+            "anonymous": bool(item.get("anonymous", False)),
             "category": item["category"],
             "priority": item["priority"],
             "sentiment": item["sentiment"],
@@ -603,7 +666,6 @@ def import_complaints(
 
 # --------------------------------------------------
 # UPDATE COMPLAINT STATUS
-# Admin authentication required.
 # --------------------------------------------------
 
 @app.patch("/complaints/{complaint_id}/status")
@@ -628,14 +690,24 @@ def update_complaint_status(
         )
 
     with get_connection() as connection:
-        cursor = connection.execute(
-            """
-            UPDATE complaints
-            SET status = ?
-            WHERE id = ?
-            """,
-            (update.status, complaint_id),
-        )
+        if DATABASE_URL:
+            cursor = connection.execute(
+                """
+                UPDATE complaints
+                SET status = %s
+                WHERE id = %s
+                """,
+                (update.status, complaint_id),
+            )
+        else:
+            cursor = connection.execute(
+                """
+                UPDATE complaints
+                SET status = ?
+                WHERE id = ?
+                """,
+                (update.status, complaint_id),
+            )
 
         if cursor.rowcount == 0:
             raise HTTPException(
