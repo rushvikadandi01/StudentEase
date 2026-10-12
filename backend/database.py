@@ -12,6 +12,7 @@ load_dotenv()
 DATABASE_PATH = Path(__file__).resolve().parent.parent / "studentease.db"
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+
 @contextmanager
 def get_connection():
     """Connect to PostgreSQL when configured; otherwise use local SQLite."""
@@ -42,16 +43,17 @@ def execute_query(connection, query, parameters=()):
     return connection.execute(query, parameters)
 
 
-
-
 def create_table():
+    """Create tables and add student_id to existing complaints tables."""
     with get_connection() as connection:
-        # Existing complaints table — unchanged
+
+        # Complaints table
         execute_query(
             connection,
             """
             CREATE TABLE IF NOT EXISTS complaints (
                 id TEXT PRIMARY KEY,
+                student_id TEXT,
                 title TEXT NOT NULL,
                 description TEXT NOT NULL,
                 location TEXT NOT NULL,
@@ -66,7 +68,38 @@ def create_table():
             """,
         )
 
-        # New students table
+        # Migrate existing databases without deleting old complaints.
+        if DATABASE_URL:
+            columns = execute_query(
+                connection,
+                """
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'complaints'
+                  AND table_schema = current_schema()
+                """,
+            ).fetchall()
+
+            existing_columns = {
+                row["column_name"] for row in columns
+            }
+        else:
+            columns = execute_query(
+                connection,
+                "PRAGMA table_info(complaints)",
+            ).fetchall()
+
+            existing_columns = {
+                row["name"] for row in columns
+            }
+
+        if "student_id" not in existing_columns:
+            execute_query(
+                connection,
+                "ALTER TABLE complaints ADD COLUMN student_id TEXT",
+            )
+
+        # Students table
         execute_query(
             connection,
             """
@@ -82,19 +115,30 @@ def create_table():
 
 
 def save_complaint(complaint):
+    """Save a complaint, including its student ID when available."""
     with get_connection() as connection:
         execute_query(
             connection,
             """
             INSERT INTO complaints (
-                id, title, description, location, anonymous,
-                category, priority, sentiment, department,
-                status, created_at
+                id,
+                student_id,
+                title,
+                description,
+                location,
+                anonymous,
+                category,
+                priority,
+                sentiment,
+                department,
+                status,
+                created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 complaint["id"],
+                complaint.get("student_id"),
                 complaint["title"],
                 complaint["description"],
                 complaint["location"],
@@ -110,13 +154,40 @@ def save_complaint(complaint):
 
 
 def get_all_complaints():
+    """Return all complaints for authorized administrative use."""
     with get_connection() as connection:
         rows = execute_query(
             connection,
             """
-            SELECT * FROM complaints
+            SELECT *
+            FROM complaints
             ORDER BY created_at DESC
             """,
+        ).fetchall()
+
+    results = []
+
+    for row in rows:
+        item = dict(row)
+        item["anonymous"] = bool(item["anonymous"])
+        item["createdAt"] = item.pop("created_at")
+        results.append(item)
+
+    return results
+
+
+def get_student_complaints(student_id):
+    """Return complaints belonging to one student only."""
+    with get_connection() as connection:
+        rows = execute_query(
+            connection,
+            """
+            SELECT *
+            FROM complaints
+            WHERE student_id = ?
+            ORDER BY created_at DESC
+            """,
+            (student_id,),
         ).fetchall()
 
     results = []

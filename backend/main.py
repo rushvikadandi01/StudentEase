@@ -1,3 +1,4 @@
+
 import os
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
@@ -17,32 +18,24 @@ from backend.database import (
     create_table,
     save_complaint,
     get_all_complaints,
+    get_student_complaints,
     get_connection,
 )
 
-
-# --------------------------------------------------
-# CONFIGURATION
-# --------------------------------------------------
-
+# Configuration
 load_dotenv()
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "30"))
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 frontend_origin = os.getenv("FRONTEND_ORIGIN", "").rstrip("/")
 
 password_hash = PasswordHash.recommended()
 bearer_scheme = HTTPBearer(auto_error=False)
 
-
-# --------------------------------------------------
-# MACHINE LEARNING MODEL
-# --------------------------------------------------
-
+# Machine learning model
 MODEL_PATH = (
     Path(__file__).resolve().parent.parent
     / "ml"
@@ -56,11 +49,7 @@ except Exception as error:
     complaint_model = None
     print(f"ML model could not be loaded: {error}")
 
-
-# --------------------------------------------------
-# FASTAPI APP
-# --------------------------------------------------
-
+# FastAPI application
 app = FastAPI(title="StudentEase API")
 
 app.add_middleware(
@@ -77,11 +66,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# --------------------------------------------------
-# REQUEST MODELS
-# --------------------------------------------------
-
+# Request models
 class Complaint(BaseModel):
     title: str
     description: str
@@ -89,36 +74,27 @@ class Complaint(BaseModel):
     category: str = "Let AI detect"
     anonymous: bool = False
 
-
 class StatusUpdate(BaseModel):
     status: str
-
 
 class AdminLogin(BaseModel):
     username: str
     password: str
-
 
 class StudentRegister(BaseModel):
     full_name: str
     email: str
     password: str
 
-
 class StudentLogin(BaseModel):
     email: str
     password: str
 
-
-# --------------------------------------------------
-# ADMIN AUTHENTICATION
-# --------------------------------------------------
-
+# Admin authentication
 def require_admin(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ):
     """Validate the JWT token for admin-only endpoints."""
-
     if not credentials:
         raise HTTPException(
             status_code=401,
@@ -150,7 +126,6 @@ def require_admin(
             )
 
         return payload
-
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=401,
@@ -158,14 +133,51 @@ def require_admin(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+# Student authentication
+def require_student(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+):
+    """Validate a JWT token and return the authenticated student's identity."""
+    if not credentials:
+        raise HTTPException(
+            status_code=401,
+            detail="Student login required.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
+    if not JWT_SECRET_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="Student authentication is not configured.",
+        )
+
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            JWT_SECRET_KEY,
+            algorithms=["HS256"],
+        )
+
+        if payload.get("role") != "student" or not payload.get("sub"):
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid student token.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return payload
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired student token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+# Admin login
 @app.post("/admin/login")
 def admin_login(login: AdminLogin):
     """Authenticate an admin and return a short-lived JWT."""
-
-    if not all(
-        [ADMIN_USERNAME, ADMIN_PASSWORD_HASH, JWT_SECRET_KEY]
-    ):
+    if not all([ADMIN_USERNAME, ADMIN_PASSWORD_HASH, JWT_SECRET_KEY]):
         raise HTTPException(
             status_code=500,
             detail="Admin authentication is not configured. Check the environment variables.",
@@ -179,10 +191,7 @@ def admin_login(login: AdminLogin):
     except Exception:
         password_is_valid = False
 
-    if (
-        login.username != ADMIN_USERNAME
-        or not password_is_valid
-    ):
+    if login.username != ADMIN_USERNAME or not password_is_valid:
         raise HTTPException(
             status_code=401,
             detail="Incorrect username or password.",
@@ -208,41 +217,32 @@ def admin_login(login: AdminLogin):
         "expires_in": JWT_EXPIRE_MINUTES * 60,
     }
 
-
-# --------------------------------------------------
-# STUDENT REGISTRATION
-# --------------------------------------------------
-
+# Student registration
 @app.post("/students/register", status_code=201)
 def register_student(student: StudentRegister):
     full_name = student.full_name.strip()
     email = student.email.strip().lower()
     password = student.password
 
-    # Validate required fields
     if not full_name:
         raise HTTPException(
             status_code=400,
             detail="Full name is required.",
         )
 
-    # Validate college email domain
     if not email.endswith("@student.gitam.edu"):
         raise HTTPException(
             status_code=400,
             detail="Please use your @student.gitam.edu email address.",
         )
 
-    # Validate password length
     if len(password) < 8:
         raise HTTPException(
             status_code=400,
             detail="Password must contain at least 8 characters.",
         )
 
-    # Hash password before storing it
     hashed_password = password_hash.hash(password)
-
     student_id = str(uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
 
@@ -278,9 +278,7 @@ def register_student(student: StudentRegister):
                         created_at,
                     ),
                 )
-
     except Exception as error:
-        # Handle duplicate email without exposing database details
         error_code = getattr(error, "sqlstate", None)
         sqlite_code = getattr(error, "sqlite_errorcode", None)
 
@@ -299,16 +297,11 @@ def register_student(student: StudentRegister):
         "email": email,
     }
 
-
-# --------------------------------------------------
-# STUDENT LOGIN
-# --------------------------------------------------
-
+# Student login
 @app.post("/students/login")
 def student_login(student: StudentLogin):
     email = student.email.strip().lower()
 
-    # Find the registered student
     with get_connection() as connection:
         if DATABASE_URL:
             cursor = connection.execute(
@@ -331,7 +324,6 @@ def student_login(student: StudentLogin):
 
         student_record = cursor.fetchone()
 
-    # Check email and password
     if not student_record:
         raise HTTPException(
             status_code=401,
@@ -358,8 +350,9 @@ def student_login(student: StudentLogin):
             detail="Login authentication is not configured.",
         )
 
-    # Create a short-lived student token
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=JWT_EXPIRE_MINUTES
+    )
 
     token = jwt.encode(
         {
@@ -383,39 +376,24 @@ def student_login(student: StudentLogin):
         },
     }
 
-
-# --------------------------------------------------
-# DATABASE STARTUP
-# --------------------------------------------------
-
+# Database startup
 @app.on_event("startup")
 def startup():
     create_table()
 
-
-# --------------------------------------------------
-# HOME
-# --------------------------------------------------
-
+# Home
 @app.get("/")
 def home():
     return {"message": "StudentEase backend is running!"}
 
-
-# --------------------------------------------------
-# COMPLAINT ANALYSIS
-# --------------------------------------------------
-
+# Complaint analysis
 def analyze_details(complaint: Complaint):
-    text = (
-        complaint.title + " " + complaint.description
-    ).lower()
+    text = (complaint.title + " " + complaint.description).lower()
 
     # Category detection
     if complaint.category != "Let AI detect":
         category = complaint.category
         method = "manual_selection"
-
     elif complaint_model is not None:
         try:
             category = str(
@@ -428,14 +406,9 @@ def analyze_details(complaint: Complaint):
             print(f"ML prediction failed: {error}")
             category = "General Complaint"
             method = "keyword_rules_fallback"
-
     else:
-        if any(
-            word in text
-            for word in ["wifi", "wi-fi", "internet", "network"]
-        ):
+        if any(word in text for word in ["wifi", "wi-fi", "internet", "network"]):
             category = "IT / Internet"
-
         elif any(
             word in text
             for word in [
@@ -444,13 +417,8 @@ def analyze_details(complaint: Complaint):
             ]
         ):
             category = "Infrastructure"
-
-        elif any(
-            word in text
-            for word in ["hostel", "warden", "dormitory"]
-        ):
+        elif any(word in text for word in ["hostel", "warden", "dormitory"]):
             category = "Hostel"
-
         elif any(
             word in text
             for word in [
@@ -459,13 +427,8 @@ def analyze_details(complaint: Complaint):
             ]
         ):
             category = "Academics"
-
-        elif any(
-            word in text
-            for word in ["bus", "transport", "driver"]
-        ):
+        elif any(word in text for word in ["bus", "transport", "driver"]):
             category = "Transport"
-
         elif any(
             word in text
             for word in [
@@ -474,7 +437,6 @@ def analyze_details(complaint: Complaint):
             ]
         ):
             category = "Cleanliness"
-
         elif any(
             word in text
             for word in [
@@ -483,18 +445,16 @@ def analyze_details(complaint: Complaint):
             ]
         ):
             category = "Security"
-
         else:
             category = "General Complaint"
 
         method = "keyword_rules_fallback"
 
-    # Priority detection
+    # Priority detection (rule-based)
     high_words = [
         "urgent", "emergency", "danger",
         "fire", "accident", "security threat",
     ]
-
     medium_words = [
         "not working", "unable", "broken",
         "problem", "issue", "delay",
@@ -507,7 +467,7 @@ def analyze_details(complaint: Complaint):
     else:
         priority = "LOW"
 
-    # Sentiment detection
+    # Sentiment detection (rule-based)
     negative_words = [
         "bad", "terrible", "frustrated", "unable",
         "problem", "issue", "broken", "worst",
@@ -541,67 +501,85 @@ def analyze_details(complaint: Complaint):
         "category": category,
         "priority": priority,
         "sentiment": sentiment,
-        "department": departments.get(
-            category, "Student Affairs"
-        ),
+        "department": departments.get(category, "Student Affairs"),
         "method": method,
     }
-
 
 @app.post("/analyze")
 def analyze_complaint(complaint: Complaint):
     return analyze_details(complaint)
 
-
-# --------------------------------------------------
-# CREATE COMPLAINT
-# --------------------------------------------------
-
+# Create complaint
 @app.post("/complaints")
-def create_complaint(complaint: Complaint):
-    result = analyze_details(complaint)
+def create_complaint(
+    complaint: Complaint,
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+):
+    """Analyze and save a complaint, associating it with a logged-in student."""
+    student_id = None
 
+    # Preserve compatibility with requests that do not send a token.
+    # Logged-in students' complaints are linked to their student ID.
+    if credentials:
+        if not JWT_SECRET_KEY:
+            raise HTTPException(
+                status_code=500,
+                detail="Student authentication is not configured.",
+            )
+
+        try:
+            payload = jwt.decode(
+                credentials.credentials,
+                JWT_SECRET_KEY,
+                algorithms=["HS256"],
+            )
+        except jwt.InvalidTokenError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired student token.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if payload.get("role") != "student" or not payload.get("sub"):
+            raise HTTPException(
+                status_code=401,
+                detail="A valid student login is required to associate this complaint.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        student_id = payload["sub"]
+
+    result = analyze_details(complaint)
     result["id"] = f"CP-{uuid4().hex[:8].upper()}"
     result["status"] = "Pending"
-    result["createdAt"] = datetime.now(
-        timezone.utc
-    ).isoformat()
+    result["createdAt"] = datetime.now(timezone.utc).isoformat()
+
+    if student_id:
+        result["student_id"] = student_id
 
     save_complaint(result)
 
+    # Do not expose the internal student ID in the response.
+    result.pop("student_id", None)
     return result
 
+# Student-only complaint history
+@app.get("/students/my-complaints")
+def list_student_complaints(student: dict = Depends(require_student)):
+    """Return complaints belonging only to the authenticated student."""
+    return get_student_complaints(student["sub"])
 
-# --------------------------------------------------
-# LIST COMPLAINTS
-# NOTE: This endpoint remains public for compatibility.
-# Restrict it before storing real student complaints.
-# --------------------------------------------------
-
-
+# Admin-only complaint list
 @app.get("/complaints")
-def list_complaints(
-    admin: dict = Depends(require_admin),
-):
+def list_complaints(admin: dict = Depends(require_admin)):
     return get_all_complaints()
-
-
-
-# --------------------------------------------------
-# ADMIN-ONLY COMPLAINT LIST
-# --------------------------------------------------
 
 @app.get("/admin/complaints")
-def list_admin_complaints(
-    admin: dict = Depends(require_admin),
-):
+def list_admin_complaints(admin: dict = Depends(require_admin)):
     return get_all_complaints()
 
 
-# --------------------------------------------------
-# IMPORT COMPLAINTS
-# --------------------------------------------------
-
+# Import complaints (admin only)
 @app.post("/complaints/import")
 def import_complaints(
     complaints: list[dict[str, Any]],
@@ -625,14 +603,15 @@ def import_complaints(
             continue
 
         required_fields = [
-            "title", "description", "category",
-            "priority", "sentiment", "department",
+            "title",
+            "description",
+            "category",
+            "priority",
+            "sentiment",
+            "department",
         ]
 
-        if any(
-            not item.get(field)
-            for field in required_fields
-        ):
+        if any(not item.get(field) for field in required_fields):
             continue
 
         record = {
@@ -664,10 +643,7 @@ def import_complaints(
     }
 
 
-# --------------------------------------------------
-# UPDATE COMPLAINT STATUS
-# --------------------------------------------------
-
+# Update complaint status (admin only)
 @app.patch("/complaints/{complaint_id}/status")
 def update_complaint_status(
     complaint_id: str,

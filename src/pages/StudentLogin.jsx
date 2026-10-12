@@ -22,33 +22,53 @@ function StudentLogin() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Login failed.");
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : "Login failed. Please check your credentials."
+        );
+      }
+
+      const studentData = data.student || data;
+
+      const student = {
+        id: studentData.student_id ?? studentData.id ?? "",
+        full_name:
+          studentData.full_name ??
+          studentData.name ??
+          "",
+        email: studentData.email ?? email.trim(),
+      };
+
+      if (!data.access_token || !student.full_name) {
+        throw new Error(
+          "Login succeeded, but student details were missing from the server response. Please contact the administrator."
+        );
       }
 
       sessionStorage.setItem(
         "studentease.studentToken",
-        data.access_token,
+        data.access_token
       );
 
       sessionStorage.setItem(
         "studentease.student",
-        JSON.stringify({
-          id: data.student_id,
-          full_name: data.full_name,
-          email: data.email,
-        }),
+        JSON.stringify(student)
       );
 
-      navigate("/student-dashboard");
+      navigate("/student-dashboard", { replace: true });
     } catch (error) {
       setMessage(
-        error.message || "Unable to connect to the server.",
+        error.message || "Unable to connect to the server."
       );
     } finally {
       setLoading(false);

@@ -13,9 +13,13 @@ function MyComplaints() {
   useEffect(() => {
     async function loadComplaints() {
       try {
-        const response = await fetch(
-          `${API_URL}/complaints`
-        );
+       const token = sessionStorage.getItem("studentease.studentToken");
+
+const response = await fetch(`${API_URL}/students/my-complaints`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
         if (!response.ok) {
           throw new Error("Failed to load complaints.");
